@@ -1,0 +1,6 @@
+circuit-pulse-board.jpg: the Nintendo 64 main board (NUS-CPU-03), top side.
+From "Nintendo-N64-Motherboard-Top.jpg" by Evan-Amos, Wikimedia Commons,
+released into the public domain:
+https://commons.wikimedia.org/wiki/File:Nintendo-N64-Motherboard-Top.jpg
+Cropped to 4:3 around the chips (2683x2012 at +669+1002 of the 4020x3780
+original) and resized to 1536x1152.

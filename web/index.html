@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NFMT Theme Editor</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header>
+    <div><strong>NFMT</strong> <span>N64 menu theme editor</span></div>
+    <div class="toolbar">
+      <div class="segmented" role="group" aria-label="View">
+        <button id="showGallery" type="button" aria-pressed="false">Gallery</button>
+        <button id="showEditor" type="button" aria-pressed="true">Editor</button>
+      </div>
+      <select id="exampleSelect" title="Load bundled example">
+        <optgroup label="Bundled examples">
+          <option value="../assets/themes/desert-sunset.png">Desert</option>
+          <option value="../assets/themes/moonlit-clouds.png">Moonlit Clouds</option>
+          <option value="../assets/themes/sakura.png">Sakura</option>
+          <option value="../assets/themes/water.png" selected>Water</option>
+        </optgroup>
+      </select>
+      <button id="loadExample">Load example</button>
+      <label class="button">Import PNG<input id="importPng" type="file" accept="image/png" hidden></label>
+      <button class="primary" id="exportPng">Export PNG</button>
+    </div>
+  </header>
+
+  <section id="galleryView" class="gallery" hidden>
+    <div class="gallery-bar">
+      <label>Family <select id="galleryFamily"></select></label>
+      <label>Type <select id="galleryType"></select></label>
+      <label>Status <select id="galleryStatus"></select></label>
+      <label>Search <input id="gallerySearch" type="search" placeholder="name or file"></label>
+      <span id="galleryCount" class="dim"></span>
+      <span class="dim">Hover or scroll to animate · tap to edit</span>
+    </div>
+    <div id="galleryGrid" class="gallery-grid"></div>
+  </section>
+
+  <main id="editorView">
+    <aside>
+      <section>
+        <h2>Identity</h2>
+        <label>Name <input id="name" maxlength="63"></label>
+        <label>Family <input id="family" list="families" maxlength="63"></label>
+        <datalist id="families"></datalist>
+      </section>
+
+      <section>
+        <h2>Background</h2>
+        <label>Mode
+          <select id="bgMode">
+            <option value="solid">Solid</option><option value="gradient">Gradient</option><option value="single">One texture</option><option value="dual">Two layers</option><option value="static">Static image</option>
+          </select>
+        </label>
+        <div id="bgFields"></div>
+      </section>
+
+      <section id="staticSection" class="hidden">
+        <h2>Static image</h2>
+        <div class="art-row"><canvas id="staticThumb" width="128" height="96"></canvas><div><div id="staticInfo" class="dim"></div><div id="staticBudget" class="warn"></div></div></div>
+        <div class="row">
+          <label>Fit <select id="staticFit"><option value="screen">Cover 640×480</option><option value="panorama">Seamless panorama</option><option value="none">Keep size</option></select></label>
+          <label>Colors <select id="staticColors"><option>256</option><option>128</option><option>64</option><option>32</option></select></label>
+        </div>
+        <label><input id="staticCi8" type="checkbox" checked> Quantize to CI8 on import</label>
+        <div class="buttons"><label class="button small">Import image<input id="staticFile" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="staticToCi8" class="small">To CI8</button><button id="staticToRgba" class="small">To RGBA16</button></div>
+        <div class="row"><label>Pan X <input id="panX" type="number" min="-8" max="8" step="0.05"></label><label>Pan Y <input id="panY" type="number" min="-8" max="8" step="0.05"></label></div>
+        <label><input id="staticOverlay" type="checkbox"> Overlay layer 0 (snow, rain, mist…)</label>
+      </section>
+
+      <section id="paletteSection" class="hidden">
+        <h2>CI8 palette &amp; color cycling</h2>
+        <div id="paletteGrid" class="palette-grid"></div>
+        <div class="dim" id="paletteSelection"></div>
+        <div class="buttons"><input id="paletteColor" type="color" title="Set selected colors" disabled><button id="paletteRamp" class="small" title="Brightness wave from the first selected color">Ramp</button><button id="rangeAdd" class="small">Add cycling range</button></div>
+        <div id="rangeList"></div>
+      </section>
+
+      <section id="textureSection">
+        <h2>Texture inspector</h2>
+        <canvas id="tileView" width="192" height="192" class="tile-view"></canvas>
+        <div id="tileInfo" class="dim"></div>
+        <div class="row">
+          <label>Size <select id="tileSize"><option>64</option><option>32</option><option>16</option></select></label>
+          <label>Alpha from luma <input id="tileAlpha" type="number" min="0" max="1" step="0.05" placeholder="off"></label>
+        </div>
+        <label><input id="tilePeriod" type="checkbox" checked> Crop one repeat period (auto-detect)</label>
+        <div class="buttons"><label class="button small">Tile from source…<input id="tileSource" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><span id="tileNote" class="dim"></span></div>
+      </section>
+
+      <section id="artworkSection">
+        <h2>Artwork</h2>
+        <div class="art-row" id="layer0Row"><canvas id="layer0Thumb" width="96" height="64"></canvas><div><b>Layer 0</b><div id="layer0Info" class="dim"></div><label class="button small">Replace<input id="layer0File" type="file" accept="image/png" hidden></label></div></div>
+        <div class="art-row" id="layer1Row"><canvas id="layer1Thumb" width="96" height="64"></canvas><div><b>Layer 1</b><div id="layer1Info" class="dim"></div><label><input id="sharedLayer" type="checkbox"> Reuse layer 0</label><label class="button small">Replace<input id="layer1File" type="file" accept="image/png" hidden></label></div></div>
+        <div class="art-row" id="borderArtRow"><canvas id="borderThumb" width="96" height="64"></canvas><div><b>Embedded border</b><div id="borderInfo" class="dim"></div><label class="button small">Replace<input id="borderFile" type="file" accept="image/png" hidden></label></div></div>
+      </section>
+
+      <section>
+        <h2>Border</h2>
+        <label>Source <select id="borderSource"><option value="internal">Internal</option><option value="embedded">Embedded 24×24</option></select></label>
+        <div id="borderFields"></div>
+      </section>
+
+      <section>
+        <h2>Palette</h2>
+        <div id="colors" class="colors"></div>
+      </section>
+    </aside>
+
+    <article>
+      <div class="preview-controls">
+        <label><input id="hideUi" type="checkbox" checked> Hide UI</label>
+        <button id="playPause" class="small">Pause</button>
+        <input id="scrub" type="range" min="0" max="120" step="0.01" value="0" title="Time (seconds)">
+        <span id="timeReadout" class="dim">0.00 s</span>
+        <select id="speed" title="Playback speed"><option value="0.25">¼×</option><option value="0.5">½×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+        <div class="preview-zoom" role="group" aria-label="Preview zoom">
+          <button id="previewZoomOut" type="button" aria-label="Zoom out">−</button>
+          <button id="previewFit" type="button">Fit</button>
+          <button id="previewActual" type="button">1:1</button>
+          <button id="previewZoomIn" type="button" aria-label="Zoom in">+</button>
+          <output id="previewZoomValue" aria-live="polite"></output>
+        </div>
+      </div>
+      <div id="previewViewport" class="preview-viewport" tabindex="0" aria-label="Theme preview. Pinch to zoom; scroll or swipe to pan.">
+        <canvas id="preview" width="640" height="480"></canvas>
+      </div>
+      <p class="dim preview-help">Pinch or Ctrl+wheel to zoom · scroll or swipe to pan · Fit to reset</p>
+      <details><summary>Decoded package JSON</summary><pre id="json"></pre></details>
+      <div id="errors" role="alert"></div>
+    </article>
+  </main>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>

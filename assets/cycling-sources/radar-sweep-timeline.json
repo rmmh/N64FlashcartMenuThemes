@@ -1,0 +1,40 @@
+{
+  "columns": 4,
+  "rows": 4,
+  "cellInset": 4,
+  "scope": { "centerX": 320, "centerY": 213, "radius": 186 },
+  "frameCount": 192,
+  "stepTicks": 1,
+  "contactPaletteStepTicks": 6,
+  "phosphorGain": 2.2,
+  "motionCompensated": true,
+  "beamTailDegrees": 65,
+  "extractBeamProfile": true,
+  "cloudGain": 0.85,
+  "contactHoldTicks": 6,
+  "contactFadeTicks": 72,
+  "contacts": [[-0.50, -0.50], [0.39, -0.48], [0.50, 0.44], [-0.36, 0.43]],
+  "contactSprites": [
+    { "x": -0.50, "y": -0.50, "cell": 14, "rangeRadius": 133.5 },
+    { "x": 0.39, "y": -0.48, "cell": 1, "rangeRadius": 98.5 },
+    { "x": 0.50, "y": 0.44, "cell": 6, "rangeRadius": 133.5 },
+    { "x": -0.36, "y": 0.43, "cell": 10, "rangeRadius": 98.5 }
+  ],
+  "keyframes": [
+    { "cell": 0, "angle": 0 },
+    { "cell": 1, "angle": 18 },
+    { "cell": 2, "angle": 46 },
+    { "cell": 3, "angle": 71 },
+    { "cell": 4, "angle": 88 },
+    { "cell": 5, "angle": 114 },
+    { "cell": 6, "angle": 138 },
+    { "cell": 8, "angle": 180 },
+    { "cell": 11, "angle": 211 },
+    { "cell": 10, "angle": 228 },
+    { "cell": 9, "angle": 254 },
+    { "cell": 12, "angle": 269 },
+    { "cell": 14, "angle": 312 },
+    { "cell": 13, "angle": 331 },
+    { "cell": 15, "angle": 345 }
+  ]
+}

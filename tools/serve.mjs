@@ -1,0 +1,7 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),port=Number(process.env.PORT||8080);
+const types={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css','.png':'image/png','.ttf':'font/ttf','.md':'text/markdown; charset=utf-8'};
+http.createServer((req,res)=>{let pathname=decodeURIComponent(new URL(req.url,'http://x').pathname);if(pathname==='/'){res.writeHead(302,{location:'/web/'}).end();return;}if(pathname==='/themes-index.json'){fs.readdir(path.join(root,'assets/themes'),(err,files)=>{if(err){res.writeHead(500).end();return;}res.writeHead(200,{'content-type':types['.json'],'cache-control':'no-cache'});res.end(JSON.stringify(files.filter(f=>f.endsWith('.png')).sort()));});return;}if(pathname==='/web/')pathname='/web/index.html';const file=path.resolve(root,'.'+pathname);if(!file.startsWith(root)){res.writeHead(403).end();return;}fs.stat(file,(err,st)=>{if(err||!st.isFile()){res.writeHead(404).end('Not found');return;}res.writeHead(200,{'content-type':types[path.extname(file)]||'application/octet-stream','cache-control':'no-cache'});fs.createReadStream(file).pipe(res);});}).listen(port,()=>console.log(`NFMT editor: http://localhost:${port}/`));

@@ -1,0 +1,9 @@
+{
+  "tool": "codex exec image generation (codex-cli 0.162.1)",
+  "prompts": {
+    "cloudsea": "A very wide landscape-format (1536x1024) painterly panorama of a sea of clouds at dawn seen from a high mountain: soft rolling cloud tops filling the lower two thirds, a few distant dark blue mountain peaks poking through, warm peach and lavender sky above with gentle gradients. The composition must be horizontally continuous with no central focal point, no sun disc, so the left and right edges could be joined into a looping panorama. No text, no frame, no border, no vignette.",
+    "shrine": "A landscape-format (1536x1024) moody painting of a small Japanese mountain shrine at night during gentle snowfall: snow-covered roof, torii gate, warm paper lanterns glowing orange, tall dark cedar trees, deep blue snowy shadows. Keep the center of the image calm and dark (it will sit behind a translucent menu panel); details toward the edges. No falling snowflakes painted in the image (snow will be animated separately), no text, no frame, no vignette.",
+    "snowflakes": "A square 1024x1024 image of sparse soft white snowflakes and round snow specks of varied sizes (some large and soft-focused, many small) scattered evenly over a pure flat black background. Seamless tileable distribution, no clumps, nothing touching the edges in a way that breaks tiling, no other colors, no text.",
+    "zellige": "A square 1024x1024 flat orthographic photograph-like texture of Moroccan zellige glazed ceramic tile mosaic: an 8-pointed star and cross pattern that repeats EXACTLY 4 times horizontally and 4 times vertically, with the repeat aligned to the image edges so it tiles seamlessly. Colors: cobalt blue, emerald green, ivory white, terracotta, with thin dark grout lines. Even lighting, no perspective, no vignette, no text."
+  }
+}

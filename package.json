@@ -1,0 +1,22 @@
+{
+  "name": "nfmt-theme-tools",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Dependency-free JavaScript packer, unpacker, renderer, CLI and browser editor for N64 menu theme PNG format v1.",
+  "scripts": {
+    "test": "node --test",
+    "editor": "node tools/serve.mjs",
+    "inspect": "node cli/nfmt.mjs inspect",
+    "build:borders": "node tools/build-internal-borders.mjs",
+    "build:theme-index": "node tools/build-theme-index.mjs",
+    "build:site": "node tools/build-site.mjs"
+  },
+  "bin": {
+    "nfmt": "./cli/nfmt.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

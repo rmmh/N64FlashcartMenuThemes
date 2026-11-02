@@ -1,0 +1,8 @@
+# Theme packages bundled in the N64FlashcartMenu ROM (its assets/themes/).
+# The gallery marks packages listed neither here nor in sd-themes.txt as
+# "to delete".
+diurnal.png
+matrix.png
+sakura.png
+solar-flare.png
+water.png
