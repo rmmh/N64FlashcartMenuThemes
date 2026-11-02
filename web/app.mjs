@@ -67,7 +67,7 @@ $('showGallery').addEventListener('click',()=>navigate(true));
 $('showEditor').addEventListener('click',()=>navigate(false));
 
 // Navigation: the view, gallery filters and loaded package live in the query
-// string (?view=gallery&family=…&status=…&q=… or ?theme=<file>), so links,
+// string (?view=gallery&family=…&q=… or ?theme=<file>), so links,
 // reloads and the back button restore them. Each editor history entry keeps its
 // theme object, so going back to it keeps its edits (and imported PNGs).
 const PACKAGE_DIR='../assets/themes/';
@@ -78,7 +78,7 @@ let currentFile=null,entryCount=0;
 const newKey=()=>`${performance.timeOrigin}-${++entryCount}`;
 history.scrollRestoration='manual';
 function setTheme(next,file){theme=next;currentFile=file;animTime=0;previewViewport.reset();syncUi();queueRender();}
-function urlFor(gallery){const p=new URLSearchParams();if(gallery){const f=gallery$.filters();p.set('view','gallery');if(f.family!=='All')p.set('family',f.family);if(f.status!=='all')p.set('status',f.status);if(f.type!=='all')p.set('type',f.type);if(f.query)p.set('q',f.query);}else if(currentFile)p.set('theme',currentFile);return p.size?`?${p}`:location.pathname;}
+function urlFor(gallery){const p=new URLSearchParams();if(gallery){const f=gallery$.filters();p.set('view','gallery');if(f.family!=='All')p.set('family',f.family);if(f.type!=='all')p.set('type',f.type);if(f.query)p.set('q',f.query);}else if(currentFile)p.set('theme',currentFile);return p.size?`?${p}`:location.pathname;}
 function navigate(gallery){
   history.replaceState({...history.state,scroll:scrollY},'');
   const state={gallery,scroll:0};
@@ -89,7 +89,7 @@ function navigate(gallery){
 }
 async function applyLocation(state){
   const p=new URLSearchParams(location.search),gallery=p.get('view')==='gallery';
-  if(gallery)gallery$.setFilters({family:p.get('family')??'All',status:p.get('status')??'all',type:p.get('type')??'all',query:p.get('q')??''});
+  if(gallery)gallery$.setFilters({family:p.get('family')??'All',type:p.get('type')??'all',query:p.get('q')??''});
   else{
     const saved=entryThemes.get(state?.key),file=p.get('theme');
     if(saved?.theme){if(saved.theme!==theme)setTheme(saved.theme,saved.file);}

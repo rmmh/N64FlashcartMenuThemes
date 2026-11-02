@@ -20,7 +20,6 @@ const copy = (from, filter = () => true) => fs.cpSync(path.join(root, from), pat
 copy('web');
 copy('src', f => f.endsWith('.mjs'));
 copy('assets/themes', f => /\.(png|json)$/.test(f));
-for (const f of ['menu-themes.txt', 'sd-themes.txt']) copy(f);
 // Drop folders the filters emptied.
 const prune = dir => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) prune(path.join(dir, e.name));

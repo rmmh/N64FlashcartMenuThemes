@@ -1,6 +1,0 @@
-# Theme packages bundled in the N64FlashcartMenu ROM (its assets/themes/).
-diurnal.png
-matrix.png
-sakura.png
-solar-flare.png
-water.png
