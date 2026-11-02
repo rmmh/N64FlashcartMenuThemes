@@ -3,6 +3,7 @@
 body { margin:0; }
 header { height:58px; padding:0 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #343a44; background:#1c2027; position:sticky; top:0; z-index:3; }
 header strong { font-size:20px; margin-right:8px; } header span { color:#8f9bab; }
+.brand { color:inherit; text-decoration:none; } .brand:hover span { color:#c4ccd6; text-decoration:underline; }
 .toolbar { display:flex; gap:8px; align-items:center; }
 button,.button,select,input { font:inherit; }
 button,.button,select,input[type=text],input:not([type]) { border:1px solid #46505e; background:#252b34; color:#eef2f7; border-radius:5px; padding:7px 9px; }
