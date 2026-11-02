@@ -14,17 +14,9 @@
         <button id="showGallery" type="button" aria-pressed="false">Gallery</button>
         <button id="showEditor" type="button" aria-pressed="true">Editor</button>
       </div>
-      <select id="exampleSelect" title="Load bundled example">
-        <optgroup label="Bundled examples">
-          <option value="../assets/themes/desert-sunset.png">Desert</option>
-          <option value="../assets/themes/moonlit-clouds.png">Moonlit Clouds</option>
-          <option value="../assets/themes/sakura.png">Sakura</option>
-          <option value="../assets/themes/water.png" selected>Water</option>
-        </optgroup>
-      </select>
-      <button id="loadExample">Load example</button>
       <label class="button">Import PNG<input id="importPng" type="file" accept="image/png" hidden></label>
-      <button class="primary" id="exportPng">Export PNG</button>
+      <button class="primary" id="downloadTheme" title="Save the theme shown here, with your edits, as one PNG">Download theme (.png)</button>
+      <button class="primary" id="downloadThemes" title="Extract into the SD card root: themes go in menu/themes/">Download all themes (.zip)</button>
     </div>
   </header>
 
@@ -45,8 +37,7 @@
       <section>
         <h2>Identity</h2>
         <label>Name <input id="name" maxlength="63"></label>
-        <label>Family <input id="family" list="families" maxlength="63"></label>
-        <datalist id="families"></datalist>
+        <label>Family <span class="family-field"><input id="family" maxlength="63"><select id="familyPick" title="Choose a family" aria-label="Choose a family"></select></span></label>
       </section>
 
       <section>

@@ -11,7 +11,8 @@
     "inspect": "node cli/nfmt.mjs inspect",
     "build:borders": "node tools/build-internal-borders.mjs",
     "build:theme-index": "node tools/build-theme-index.mjs",
-    "build:site": "node tools/build-site.mjs"
+    "build:site": "node tools/build-site.mjs",
+    "build:release": "node tools/build-release.mjs"
   },
   "bin": {
     "nfmt": "./cli/nfmt.mjs"

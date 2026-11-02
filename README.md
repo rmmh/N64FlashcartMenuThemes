@@ -53,6 +53,17 @@ node cli/nfmt.mjs tile source.png tile.png --size 64x64 \
 
 For bright detail layers in dual-texture themes, `--alpha-luma 0.55` converts the low-resolution luminance into a binary RGBA5551 mask before grading. The command exits with status 2 if the tile fails the seam checks.
 
+## Installing themes
+
+Download `n64-menu-themes.zip` from the
+[latest release](https://github.com/rmmh/N64FlashcartMenuThemes/releases/latest) and
+extract it into the SD card root. Themes go in `menu/themes/`, where the menu finds
+them. The [editor](https://rmmh.github.io/N64FlashcartMenuThemes/) can also download
+one theme as a PNG, or the themes its gallery is showing as a ZIP.
+
+`npm run build:release` writes the same ZIP to `out/release/`. Pushing a `v*` tag
+publishes it as a GitHub release.
+
 ## Making a theme
 
 `AGENTS.md` describes how to add a theme, from source art to registering the package.

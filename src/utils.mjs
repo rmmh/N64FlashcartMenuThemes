@@ -9,19 +9,28 @@ export const COLOR_NAMES = [
   'Gradient TL', 'Gradient TR', 'Gradient BL', 'Gradient BR'
 ];
 export const LEGACY_FAMILIES = ['Simple', 'Hardware', 'Nature', 'Texture', 'Extra'];
+// In the menu's order. Families may have any name; these are the ones offered in the editor.
 export const CATEGORY_FAMILIES = [
-  'Nature', 'Water', 'Space', 'Life', 'Materials', 'Ornament',
-  'Machines', 'Electronics', 'Retro', 'Abstract', 'Fantasy', 'Panorama', 'Particle'
+  'Space', 'Electronics', 'Life', 'Materials', 'Machines', 'Ornament', 'Water',
+  'Retro', 'Abstract', 'Fantasy', 'Panorama', 'Particle', 'Cycling'
 ];
 export const FAMILIES = [
   ...LEGACY_FAMILIES,
   ...CATEGORY_FAMILIES.filter(name => !LEGACY_FAMILIES.includes(name)),
   'Custom'
 ];
+const knownFamily = family => FAMILIES.find(name => name.toLowerCase() === family.toLowerCase());
+/** The family a theme is listed under: known names match case-insensitively, `Custom` is reserved. */
+export function normalizeFamily(family) {
+  const known = knownFamily(family);
+  return known === 'Custom' ? 'External' : known ?? family;
+}
+/** The six-row menu page holding a family; other families are listed before `Custom`. */
 export function familyPage(family, pageSize=6) {
-  const index=Math.max(0,FAMILIES.indexOf(family));
+  const families = knownFamily(family) ? FAMILIES : [...FAMILIES.slice(0, -1), family, 'Custom'];
+  const index=families.findIndex(name => name.toLowerCase() === family.toLowerCase());
   const start=Math.floor(index/pageSize)*pageSize;
-  const names=FAMILIES.slice(start,start+pageSize);
+  const names=families.slice(start,start+pageSize);
   return {names,index:index-start,start};
 }
 export const BORDER_NAMES = ['Plain', 'Double', 'Facets', 'Beads', 'Brackets', 'Stitches', 'Nodes', 'Scallops', 'Soft'];

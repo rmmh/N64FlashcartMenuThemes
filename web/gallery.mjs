@@ -35,7 +35,7 @@ async function listing(url) {
   return new Set((await response.text()).split('\n').map(line => line.replace(/#.*/, '').trim()).filter(Boolean));
 }
 
-export function initGallery({ onSelect, setError, onFilter }) {
+export function initGallery({ onSelect, setError, onFilter, onShown }) {
   const stage = document.createElement('canvas');
   stage.width = 640; stage.height = 480;
   const host = document.createElement('div');
@@ -177,13 +177,14 @@ export function initGallery({ onSelect, setError, onFilter }) {
       const name = (e.theme?.name ?? e.file).toLowerCase();
       // A card's family is known once its package is decoded (all decode in the background).
       e.card.hidden = !((family === 'All' || e.card.dataset.family === family)
-        && (status === 'all' || e.status === status || (status === 'keep' && e.status !== 'delete'))
+        && (status === 'all' || e.status === status)
         && (type === 'all' || !!e.tags?.has(type))
         && (!query || name.includes(query) || e.file.includes(query)));
       if (!e.card.hidden) shown++;
     }
     $('galleryCount').textContent = `${shown} of ${entries.length}`;centerDirty=true;
     if(active?.card.hidden)activate(null);
+    onShown?.();
   }
 
   async function open() {
@@ -196,14 +197,13 @@ export function initGallery({ onSelect, setError, onFilter }) {
       if (!response.ok) response = await fetch('../themes-index.json');
       if (!response.ok) throw new Error('theme listing unavailable; run node tools/build-theme-index.mjs');
       const files = await response.json();
-      // Review status: bundled in the menu ROM, installed on the SD card, or neither.
-      const [menu, sd] = await Promise.all(['../menu-themes.txt', '../sd-themes.txt'].map(listing));
-      const statusOf = file => menu.has(file) ? 'menu' : sd.has(file) ? 'sd' : 'delete';
-      const counts = { menu: 0, sd: 0, delete: 0 };
+      // Where a theme lives: bundled in the menu ROM or installed on the SD card.
+      const menu = await listing('../menu-themes.txt');
+      const statusOf = file => menu.has(file) ? 'menu' : 'sd';
+      const counts = { menu: 0, sd: 0 };
       for (const file of files) counts[statusOf(file)]++;
       $('galleryStatus').replaceChildren(...[
-        ['all', `All (${files.length})`], ['keep', `Keep (${counts.menu + counts.sd})`],
-        ['menu', `Menu ROM (${counts.menu})`], ['sd', `SD card (${counts.sd})`], ['delete', `To delete (${counts.delete})`],
+        ['all', `All (${files.length})`], ['menu', `Menu ROM (${counts.menu})`], ['sd', `SD card (${counts.sd})`],
       ].map(([value, textContent]) => Object.assign(document.createElement('option'), { value, textContent })));
       $('galleryStatus').value = status;
       updateFamilies();
@@ -216,7 +216,6 @@ export function initGallery({ onSelect, setError, onFilter }) {
         const meta = Object.assign(document.createElement('span'), { className: 'gallery-meta', textContent: ' ' });
         card.append(canvas, label, meta);
         const entry = { file, card, canvas, label, meta, theme: null, state: null, status: statusOf(file) };
-        card.dataset.status = entry.status;
         const start = () => { if (entry.theme&&!touchGallery.matches)activate(entry); };
         const stop = () => { if (active===entry&&!touchGallery.matches)activate(null); };
         card.addEventListener('pointerenter', start); card.addEventListener('focus', start);
@@ -249,7 +248,8 @@ export function initGallery({ onSelect, setError, onFilter }) {
 
   // Filters set from the URL before the options exist are applied once open() fills them.
   function setFilters(filters) {
-    family = filters.family; status = filters.status; type = filters.type;
+    family = filters.family; type = filters.type;
+    status = ['menu', 'sd'].includes(filters.status) ? filters.status : 'all';
     $('gallerySearch').value = filters.query;
     query = filters.query.trim().toLowerCase();
     $('galleryStatus').value = status;
@@ -263,5 +263,7 @@ export function initGallery({ onSelect, setError, onFilter }) {
   $('galleryType').addEventListener('change', () => { type = $('galleryType').value; applyFilter(); onFilter?.(); });
   $('galleryStatus').addEventListener('change', () => { status = $('galleryStatus').value; applyFilter(); onFilter?.(); });
   $('gallerySearch').addEventListener('input', () => { query = $('gallerySearch').value.trim().toLowerCase(); applyFilter(); onFilter?.(); });
-  return { open, setFilters, filters };
+  const shownFiles = () => entries.filter(e => !e.card.hidden).map(e => e.file);
+  const totalFiles = () => entries.length;
+  return { open, setFilters, filters, shownFiles, totalFiles };
 }

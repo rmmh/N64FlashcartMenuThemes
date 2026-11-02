@@ -1,0 +1,22 @@
+name: Release themes
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm test
+      - run: npm run build:release
+      - run: gh release create "$GITHUB_REF_NAME" out/release/n64-menu-themes.zip --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

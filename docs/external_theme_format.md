@@ -40,11 +40,9 @@ occur at most once and malformed known records invalidate the file.
 | 8 | No | Two fixed-size texture-animation records (10 bytes) |
 | 9 | No | Masked animated-parameter region and playback record (13 bytes) |
 
-Family matching is case-insensitive. Recognized families are the legacy
-`Simple`, `Hardware`, `Nature`, `Texture`, and `Extra` names plus `Water`,
-`Space`, `Life`, `Materials`, `Ornament`, `Machines`, `Electronics`, `Retro`,
-`Abstract`, `Fantasy`, `Panorama`, and `Particle`. `Custom` is reserved for the built-in editor; it
-and unknown names appear under `External`. Theme-name
+Families may have any name, and matching is case-insensitive. A theme with a new
+name creates a family of that name. `Custom` is reserved for the built-in editor;
+themes using it appear under `External`. Theme-name
 collision checks are also case-insensitive. When
 a bundled and storage-backed theme have the same name, the storage-backed
 theme wins.

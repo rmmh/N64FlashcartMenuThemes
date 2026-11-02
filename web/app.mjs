@@ -2,11 +2,13 @@ import {
   parseThemeImage, packThemeImage, themeToSerializable,
   decodePngBrowser, encodePngBrowser, imageToCanvas, COLOR_NAMES, BORDER_NAMES, INTERNAL_BORDER_GEOMETRY
 } from '../src/browser.mjs';
-import { FAMILIES } from '../src/utils.mjs';
+import { FAMILIES, normalizeFamily } from '../src/utils.mjs';
 import { WebGLThemeRenderer } from './webgl-renderer.mjs';
 import { initExtras } from './editor-extras.mjs';
 import { initGallery } from './gallery.mjs';
 import { initPreviewViewport } from './preview-viewport.mjs';
+import { allThemeFiles, saveBlob, zipThemes } from './theme-downloads.mjs';
+import { THEME_ZIP_NAME } from '../src/zip.mjs';
 
 const $ = id => document.getElementById(id);
 let theme = null;
@@ -17,9 +19,8 @@ let previewRenderer;
 let playing = true, speed = 1;
 const extras = initExtras({ getTheme: () => theme, queueRender: () => queueRender(), setError: s => setError(s), rebuild: () => syncUi() });
 
-$('families').replaceChildren(...FAMILIES.map(name=>{
-  const option=document.createElement('option');option.value=name;return option;
-}));
+$('familyPick').replaceChildren(...['',...FAMILIES].map(name=>Object.assign(document.createElement('option'),{value:name,textContent:name,hidden:!name})));
+function syncFamilyPick(){const family=$('family').value.toLowerCase();$('familyPick').value=FAMILIES.find(name=>name.toLowerCase()===family)??'';}
 
 function hex(c){ return '#' + c.slice(0,3).map(v=>v.toString(16).padStart(2,'0')).join(''); }
 function fromHex(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
@@ -33,7 +34,7 @@ async function loadUrl(url){ try { setError(''); const r=await fetch(url); if(!r
 async function loadBlob(blob){const image=await decodePngBrowser(blob);theme=parseThemeImage(image);syncUi();queueRender();}
 
 function setError(s){$('errors').textContent=s||'';}
-function syncUi(){ if(!theme)return; $('name').value=theme.name;$('family').value=theme.family;$('bgMode').value=theme.background.mode;$('borderSource').value=theme.border.source;$('sharedLayer').checked=theme.artwork.layer1===theme.artwork.layer0 && !!theme.artwork.layer0; buildBgFields();buildBorderFields();buildColors();updateArtwork();updateJson();extras.sync(); }
+function syncUi(){ if(!theme)return; $('name').value=theme.name;$('family').value=theme.family;syncFamilyPick();$('bgMode').value=theme.background.mode;$('borderSource').value=theme.border.source;$('sharedLayer').checked=theme.artwork.layer1===theme.artwork.layer0 && !!theme.artwork.layer0; buildBgFields();buildBorderFields();buildColors();updateArtwork();updateJson();extras.sync(); }
 
 function buildBgFields(){const bg=theme.background,el=$('bgFields');let h='';if(bg.mode==='gradient')h=numberField('Speed','speed',bg.speed,0,2)+numberField('Warp','warp',bg.warp,0,1);else if(bg.mode==='single'||bg.overlay)h=numberField('Scale','scale',bg.scale,1/64,16)+`<div class="row">${numberField('Velocity X','velocityX',bg.velocityX,-4,4)}${numberField('Velocity Y','velocityY',bg.velocityY,-4,4)}</div>`+numberField('Rotation','rotation',bg.rotation,-0.25,0.25,'0.001')+numberField('Alpha','alpha',bg.alpha,0,255,'1');else if(bg.mode==='dual')h=numberField('Scale 0','scale0',bg.scale0,1/64,16)+numberField('Scale 1','scale1',bg.scale1,1/64,16)+`<div class="row">${numberField('Vel X 0','velocityX0',bg.velocityX0,-4,4)}${numberField('Vel Y 0','velocityY0',bg.velocityY0,-4,4)}</div><div class="row">${numberField('Vel X 1','velocityX1',bg.velocityX1,-4,4)}${numberField('Vel Y 1','velocityY1',bg.velocityY1,-4,4)}</div>`+numberField('Rotation','rotation',bg.rotation,-0.25,0.25,'0.001')+`<div class="row">${numberField('Alpha 0','alpha0',bg.alpha0,0,255,'1')}${numberField('Alpha 1','alpha1',bg.alpha1,0,255,'1')}</div>`;el.innerHTML=h;el.querySelectorAll('[data-bg]').forEach(inp=>inp.addEventListener('input',()=>{const k=inp.dataset.bg;theme.background[k]=['alpha','alpha0','alpha1'].includes(k)?Math.round(Number(inp.value)):Number(inp.value);queueRender();}));syncArtworkRows();extras.sync();}
 // Show only the artwork the background mode and border actually use.
@@ -51,18 +52,17 @@ function queueRender(){if(renderQueued)return;renderQueued=true;requestAnimation
 function render(){if(!theme)return;try{setError('');previewRenderer.render(theme,animTime,$('hideUi').checked);}catch(e){setError(e.message);}}
 
 $('name').addEventListener('input',()=>{theme.name=$('name').value;queueRender();});
-$('family').addEventListener('input',()=>{theme.family=$('family').value;queueRender();});
+$('family').addEventListener('input',()=>{theme.family=$('family').value;theme.displayFamily=normalizeFamily(theme.family);syncFamilyPick();queueRender();});
+$('familyPick').addEventListener('change',()=>{$('family').value=$('familyPick').value;$('family').dispatchEvent(new Event('input'));});
 $('bgMode').addEventListener('change',()=>{const mode=$('bgMode').value;if(mode==='solid')theme.background={mode:'solid'};else if(mode==='gradient')theme.background={mode:'gradient',speed:0.12,warp:0.3};else if(mode==='single'){theme.background={mode:'single',scale:1,velocityX:0.01,velocityY:0,rotation:0,alpha:255};theme.artwork.layer0??=blankTexture();}else if(mode==='static'){theme.background={mode:'static'};theme.staticLayout??={panX:0,panY:0};theme.artwork.staticBackground??=blankTexture(64);}else{theme.background={mode:'dual',scale0:1,scale1:0.5,velocityX0:0.01,velocityY0:0,velocityX1:-0.01,velocityY1:0.005,rotation:0,alpha0:255,alpha1:128};theme.artwork.layer0??=blankTexture();theme.artwork.layer1??=theme.artwork.layer0;}buildBgFields();updateArtwork();queueRender();});
 $('borderSource').addEventListener('change',()=>{if($('borderSource').value==='internal'){const id=theme.border.id??0,g=INTERNAL_BORDER_GEOMETRY[id];theme.border={source:'internal',id,name:BORDER_NAMES[id],tabOverlap:g[0],tabJoinDepth:g[1],selectedExpansion:g[2]};}else{theme.border={source:'embedded',tabOverlap:2,tabJoinDepth:3,selectedExpansion:1};theme.artwork.border??=blankBorder();}buildBorderFields();updateArtwork();queueRender();});
 $('hideUi').addEventListener('change',queueRender);
 $('sharedLayer').addEventListener('change',()=>{if($('sharedLayer').checked){theme.artwork.layer0??=blankTexture();theme.artwork.layer1=theme.artwork.layer0;}else if(theme.artwork.layer1===theme.artwork.layer0)theme.artwork.layer1={width:theme.artwork.layer0.width,height:theme.artwork.layer0.height,data:new Uint8ClampedArray(theme.artwork.layer0.data)};updateArtwork();queueRender();});
-$('loadExample').addEventListener('click',()=>openPackage($('exampleSelect').value));
-$('exampleSelect').addEventListener('dblclick',()=>openPackage($('exampleSelect').value));
 $('importPng').addEventListener('change',async e=>{if(e.target.files[0]){await loadBlob(e.target.files[0]);currentFile=null;navigate(false);}e.target.value='';});
 for(const [id,key] of [['layer0File','layer0'],['layer1File','layer1'],['borderFile','border']])$(id).addEventListener('change',async e=>{try{if(e.target.files[0]){const im=await decodePngBrowser(e.target.files[0]);theme.artwork[key]=im;if(key==='layer0'&&$('sharedLayer').checked)theme.artwork.layer1=im;updateArtwork();queueRender();}}catch(err){setError(err.message);}e.target.value='';});
-function setView(gallery){$('galleryView').hidden=!gallery;$('editorView').hidden=gallery;$('showGallery').setAttribute('aria-pressed',String(gallery));$('showEditor').setAttribute('aria-pressed',String(!gallery));if(gallery)gallery$.open();else resizePreview();}
+function setView(gallery){$('galleryView').hidden=!gallery;$('editorView').hidden=gallery;$('showGallery').setAttribute('aria-pressed',String(gallery));$('showEditor').setAttribute('aria-pressed',String(!gallery));if(gallery)gallery$.open();else resizePreview();syncDownloads();}
 // Edits change the theme in place, so the editor gets a copy of the gallery's.
-const gallery$=initGallery({onSelect:(selected,file)=>{setTheme(structuredClone(selected),file);navigate(false);},setError:s=>setError(s),onFilter:()=>history.replaceState(history.state,'',urlFor(true))});
+const gallery$=initGallery({onSelect:(selected,file)=>{setTheme(structuredClone(selected),file);navigate(false);},setError:s=>setError(s),onFilter:()=>history.replaceState(history.state,'',urlFor(true)),onShown:()=>syncDownloads()});
 $('showGallery').addEventListener('click',()=>navigate(true));
 $('showEditor').addEventListener('click',()=>navigate(false));
 
@@ -71,12 +71,13 @@ $('showEditor').addEventListener('click',()=>navigate(false));
 // reloads and the back button restore them. Each editor history entry keeps its
 // theme object, so going back to it keeps its edits (and imported PNGs).
 const PACKAGE_DIR='../assets/themes/';
+const DEFAULT_THEME='water.png';
 const entryThemes=new Map();
 let currentFile=null,entryCount=0;
 // Keys are unique per page load, so entries left from before a reload never match.
 const newKey=()=>`${performance.timeOrigin}-${++entryCount}`;
 history.scrollRestoration='manual';
-function setTheme(next,file){theme=next;currentFile=file;animTime=0;previewViewport.reset();syncUi();queueRender();const option=PACKAGE_DIR+file;if(file){if(![...$('exampleSelect').options].some(o=>o.value===option)){let loaded=$('loadedThemeOption');if(!loaded){loaded=document.createElement('option');loaded.id='loadedThemeOption';$('exampleSelect').prepend(loaded);}loaded.value=option;loaded.textContent=theme.name;}$('exampleSelect').value=option;}}
+function setTheme(next,file){theme=next;currentFile=file;animTime=0;previewViewport.reset();syncUi();queueRender();}
 function urlFor(gallery){const p=new URLSearchParams();if(gallery){const f=gallery$.filters();p.set('view','gallery');if(f.family!=='All')p.set('family',f.family);if(f.status!=='all')p.set('status',f.status);if(f.type!=='all')p.set('type',f.type);if(f.query)p.set('q',f.query);}else if(currentFile)p.set('theme',currentFile);return p.size?`?${p}`:location.pathname;}
 function navigate(gallery){
   history.replaceState({...history.state,scroll:scrollY},'');
@@ -86,7 +87,6 @@ function navigate(gallery){
   const url=new URL(urlFor(gallery),location.href).href;
   history[url===location.href&&!!history.state?.gallery===gallery?'replaceState':'pushState'](state,'',url);
 }
-async function openPackage(url){await loadUrl(url);currentFile=url.slice(PACKAGE_DIR.length);navigate(false);}
 async function applyLocation(state){
   const p=new URLSearchParams(location.search),gallery=p.get('view')==='gallery';
   if(gallery)gallery$.setFilters({family:p.get('family')??'All',status:p.get('status')??'all',type:p.get('type')??'all',query:p.get('q')??''});
@@ -99,7 +99,28 @@ async function applyLocation(state){
   requestAnimationFrame(()=>scrollTo(0,state?.scroll??0));
 }
 addEventListener('popstate',e=>applyLocation(e.state));
-$('exportPng').addEventListener('click',async()=>{try{setError('');const packed=packThemeImage(theme,theme.artwork),blob=await encodePngBrowser(packed.image),a=document.createElement('a'),safe=(theme.name||'theme').replace(/[^a-z0-9._-]+/gi,'-').replace(/^-|-$/g,'')||'theme';a.href=URL.createObjectURL(blob);a.download=`${safe}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}catch(e){setError(e.message);}});
+$('downloadTheme').addEventListener('click',async()=>{try{setError('');const packed=packThemeImage(theme,theme.artwork),blob=await encodePngBrowser(packed.image),safe=(theme.name||'theme').toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-|-$/g,'')||'theme';saveBlob(blob,`${safe}.png`);}catch(e){setError(e.message);}});
+// In the gallery the ZIP holds the themes the filters show; in the editor, all of them.
+let zipping=false;
+function syncDownloads(){
+  const inGallery=!$('galleryView').hidden,shown=gallery$.shownFiles().length,filtered=inGallery&&shown<gallery$.totalFiles();
+  $('downloadTheme').hidden=inGallery;
+  if(zipping)return;
+  $('downloadThemes').disabled=filtered&&!shown;
+  $('downloadThemes').textContent=filtered?`Download ${shown} theme${shown===1?'':'s'} (.zip)`:'Download all themes (.zip)';
+}
+$('downloadThemes').addEventListener('click',async()=>{
+  const button=$('downloadThemes');
+  zipping=true;button.disabled=true;setError('');
+  try{
+    const filtered=!$('galleryView').hidden&&gallery$.shownFiles().length<gallery$.totalFiles();
+    const files=filtered?gallery$.shownFiles():await allThemeFiles();
+    button.textContent=`Zipping 0/${files.length}…`;
+    const zip=await zipThemes(files,(done,total)=>{button.textContent=`Zipping ${done}/${total}…`;});
+    saveBlob(new Blob([zip],{type:'application/zip'}),THEME_ZIP_NAME);
+  }catch(e){setError(e.message);}
+  zipping=false;button.disabled=false;syncDownloads();
+});
 
 function animationLoop(now){const dt=Math.min((now-lastTick)/1000,.1);if(theme&&!$('editorView').hidden){if(playing)animTime+=dt*speed;$('scrub').max=Math.max(Number($('scrub').max),Math.ceil(animTime));$('scrub').value=animTime;$('timeReadout').textContent=`${animTime.toFixed(2)} s`;render();}lastTick=now;requestAnimationFrame(animationLoop);}
 $('playPause').addEventListener('click',()=>{playing=!playing;$('playPause').textContent=playing?'Pause':'Play';});
@@ -110,7 +131,7 @@ previewRenderer=new WebGLThemeRenderer($('preview'));
 const previewViewport=initPreviewViewport({canvas:$('preview'),viewport:$('previewViewport'),controls:document.querySelector('.preview-controls'),renderer:previewRenderer});
 new ResizeObserver(resizePreview).observe($('previewViewport').parentElement);resizePreview();requestAnimationFrame(animationLoop);
 await applyLocation(history.state);
-if(!theme){await loadUrl($('exampleSelect').value);currentFile=$('exampleSelect').value.slice(PACKAGE_DIR.length);}
+if(!theme){await loadUrl(PACKAGE_DIR+DEFAULT_THEME);currentFile=DEFAULT_THEME;}
 // Record the first entry like navigate() does for later ones.
 {const gallery=new URLSearchParams(location.search).get('view')==='gallery',state={scroll:0,...history.state,gallery};
 if(!gallery){state.key=newKey();entryThemes.set(state.key,{theme,file:currentFile});}

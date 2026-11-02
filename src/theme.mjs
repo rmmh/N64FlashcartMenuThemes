@@ -1,6 +1,6 @@
 import { crc32 } from './crc32.mjs';
 import {
-  WIDTH, MAX_HEIGHT, METADATA_BYTES_PER_ROW, FAMILIES, BORDER_NAMES, INTERNAL_BORDER_GEOMETRY,
+  WIDTH, MAX_HEIGHT, METADATA_BYTES_PER_ROW, normalizeFamily, BORDER_NAMES, INTERNAL_BORDER_GEOMETRY,
   assert, cropImage, blitImage, isPow2, isFiniteNumber,
   readU16LE, readU32LE, readF32LE, writeU16LE, writeU32LE, writeF32LE
 } from './utils.mjs';
@@ -142,11 +142,6 @@ function validateMotion(scale, vx, vy, rotation) {
 function decodeColors(v) {
   assert(v.length === 64, `colors TLV must be 64 bytes, got ${v.length}`);
   return Array.from({length:16}, (_, i) => Array.from(v.subarray(i*4, i*4+4)));
-}
-
-function normalizeFamily(family) {
-  const found = FAMILIES.filter(v=>v!=='Custom').find(v => v.toLowerCase() === family.toLowerCase());
-  return found ?? 'External';
 }
 
 /** Type 11: static rectangle and pan rates in output pixels per nominal frame. */

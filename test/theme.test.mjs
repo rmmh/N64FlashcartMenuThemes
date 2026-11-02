@@ -6,13 +6,23 @@ import { fileURLToPath } from 'node:url';
 import { decodePng, encodePng } from '../src/png-node.mjs';
 import { parseThemeImage, packThemeImage } from '../src/theme.mjs';
 import { renderTheme } from '../src/renderer.mjs';
-import { BORDER_NAMES, FAMILIES, familyPage } from '../src/utils.mjs';
+import { BORDER_NAMES, FAMILIES, familyPage, normalizeFamily } from '../src/utils.mjs';
 import { quantizeImage, makePalette, mapCi4 } from '../src/texture.mjs';
 import { resolveThemeAnimation } from '../src/animation.mjs';
 import { INTERNAL_BORDER_TEXTURES } from '../src/internal-borders.generated.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const cases=[['desert-sunset.png','Desert'],['moonlit-clouds.png','Moonlit Clouds'],['sakura.png','Sakura'],['water.png','Water']];
+
+test('arbitrary families keep their names and get a row in the menu',()=>{
+  assert.equal(normalizeFamily('Dinosaurs'),'Dinosaurs');
+  assert.equal(normalizeFamily('nature'),'Nature');
+  assert.equal(normalizeFamily('custom'),'External');
+  const page=familyPage('Dinosaurs');
+  assert.equal(page.names[page.index],'Dinosaurs');
+  assert.ok(page.names.includes('Custom'));
+  assert.equal(familyPage('cycling').names[familyPage('cycling').index],'Cycling');
+});
 
 test('expanded theme families are recognized and page into six-row menus',()=>{
   for(const name of ['Nature','Water','Space','Life','Materials','Ornament','Machines','Electronics','Retro','Abstract','Fantasy','Custom'])assert.ok(FAMILIES.includes(name));
