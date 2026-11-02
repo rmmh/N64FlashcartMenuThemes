@@ -1,5 +1,5 @@
 # Theme packages installed on the SD card as /menu/themes/<file> rather than
-# bundled in the menu ROM (see menu-themes.txt). The JavaScript builders write
+# bundled in the menu ROM. The JavaScript builders write
 # through tools/theme-output.mjs, which only overwrites files listed here.
 alien-ocean.png
 alpine-meadow.png
