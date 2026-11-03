@@ -67,9 +67,11 @@ $('showGallery').addEventListener('click',()=>navigate(true));
 $('showEditor').addEventListener('click',()=>navigate(false));
 
 // Navigation: the view, gallery filters and loaded package live in the query
-// string (?view=gallery&family=…&q=… or ?theme=<file>), so links,
+// string (?family=…&q=… for the gallery, the default; ?theme=<file> or
+// ?view=editor for the editor), so links,
 // reloads and the back button restore them. Each editor history entry keeps its
 // theme object, so going back to it keeps its edits (and imported PNGs).
+const showsGallery=p=>!p.has('theme')&&p.get('view')!=='editor';
 const PACKAGE_DIR='../assets/themes/';
 const DEFAULT_THEME='water.png';
 const entryThemes=new Map();
@@ -78,7 +80,7 @@ let currentFile=null,entryCount=0;
 const newKey=()=>`${performance.timeOrigin}-${++entryCount}`;
 history.scrollRestoration='manual';
 function setTheme(next,file){theme=next;currentFile=file;animTime=0;previewViewport.reset();syncUi();queueRender();}
-function urlFor(gallery){const p=new URLSearchParams();if(gallery){const f=gallery$.filters();p.set('view','gallery');if(f.family!=='All')p.set('family',f.family);if(f.type!=='all')p.set('type',f.type);if(f.query)p.set('q',f.query);}else if(currentFile)p.set('theme',currentFile);return p.size?`?${p}`:location.pathname;}
+function urlFor(gallery){const p=new URLSearchParams();if(gallery){const f=gallery$.filters();if(f.family!=='All')p.set('family',f.family);if(f.type!=='all')p.set('type',f.type);if(f.query)p.set('q',f.query);}else if(currentFile)p.set('theme',currentFile);else p.set('view','editor');return p.size?`?${p}`:location.pathname;}
 function navigate(gallery){
   history.replaceState({...history.state,scroll:scrollY},'');
   const state={gallery,scroll:0};
@@ -88,7 +90,7 @@ function navigate(gallery){
   history[url===location.href&&!!history.state?.gallery===gallery?'replaceState':'pushState'](state,'',url);
 }
 async function applyLocation(state){
-  const p=new URLSearchParams(location.search),gallery=p.get('view')==='gallery';
+  const p=new URLSearchParams(location.search),gallery=showsGallery(p);
   if(gallery)gallery$.setFilters({family:p.get('family')??'All',type:p.get('type')??'all',query:p.get('q')??''});
   else{
     const saved=entryThemes.get(state?.key),file=p.get('theme');
@@ -133,6 +135,6 @@ new ResizeObserver(resizePreview).observe($('previewViewport').parentElement);re
 await applyLocation(history.state);
 if(!theme){await loadUrl(PACKAGE_DIR+DEFAULT_THEME);currentFile=DEFAULT_THEME;}
 // Record the first entry like navigate() does for later ones.
-{const gallery=new URLSearchParams(location.search).get('view')==='gallery',state={scroll:0,...history.state,gallery};
+{const gallery=showsGallery(new URLSearchParams(location.search)),state={scroll:0,...history.state,gallery};
 if(!gallery){state.key=newKey();entryThemes.set(state.key,{theme,file:currentFile});}
 history.replaceState(state,'');}

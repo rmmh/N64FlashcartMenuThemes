@@ -11,16 +11,16 @@
     <div><a class="brand" href="https://github.com/rmmh/N64FlashcartMenuThemes" target="_blank" rel="noopener" title="View the source on GitHub"><strong>NFMT</strong> <span>Theme editor for N64FlashcartMenu</span></a></div>
     <div class="toolbar">
       <div class="segmented" role="group" aria-label="View">
-        <button id="showGallery" type="button" aria-pressed="false">Gallery</button>
-        <button id="showEditor" type="button" aria-pressed="true">Editor</button>
+        <button id="showGallery" type="button" aria-pressed="true">Gallery</button>
+        <button id="showEditor" type="button" aria-pressed="false">Editor</button>
       </div>
       <label class="button">Import PNG<input id="importPng" type="file" accept="image/png" hidden></label>
-      <button class="primary" id="downloadTheme" title="Save the theme shown here, with your edits, as one PNG">Download theme (.png)</button>
+      <button class="primary" id="downloadTheme" hidden title="Save the theme shown here, with your edits, as one PNG">Download theme (.png)</button>
       <button class="primary" id="downloadThemes" title="Extract into the SD card root: themes go in menu/themes/">Download all themes (.zip)</button>
     </div>
   </header>
 
-  <section id="galleryView" class="gallery" hidden>
+  <section id="galleryView" class="gallery">
     <div class="gallery-bar">
       <label>Family <select id="galleryFamily"></select></label>
       <label>Type <select id="galleryType"></select></label>
@@ -31,7 +31,7 @@
     <div id="galleryGrid" class="gallery-grid"></div>
   </section>
 
-  <main id="editorView">
+  <main id="editorView" hidden>
     <aside>
       <section>
         <h2>Identity</h2>
