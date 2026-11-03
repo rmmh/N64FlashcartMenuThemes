@@ -49,7 +49,7 @@ function updateArtwork(){thumb('layer0Thumb','layer0Info',theme.artwork.layer0);
 function updateJson(){try{$('json').textContent=JSON.stringify(themeToSerializable(theme,{}),null,2);}catch{$('json').textContent='';}}
 
 function queueRender(){if(renderQueued)return;renderQueued=true;requestAnimationFrame(()=>{renderQueued=false;render();updateJson();});}
-function render(){if(!theme)return;try{setError('');previewRenderer.render(theme,animTime,$('hideUi').checked);}catch(e){setError(e.message);}}
+function render(){if(!theme)return;try{setError('');previewRenderer.paletteHighlight=extras.paletteHighlight();previewRenderer.render(theme,animTime,$('hideUi').checked);}catch(e){setError(e.message);}}
 
 $('name').addEventListener('input',()=>{theme.name=$('name').value;queueRender();});
 $('family').addEventListener('input',()=>{theme.family=$('family').value;theme.displayFamily=normalizeFamily(theme.family);syncFamilyPick();queueRender();});

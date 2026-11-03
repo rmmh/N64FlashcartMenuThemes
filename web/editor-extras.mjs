@@ -13,10 +13,12 @@ const fromHex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), 
 const RANGE_COLORS = ['#ff6b6b', '#ffd93d', '#6bcB77', '#4d96ff', '#c77dff', '#ff9f1c', '#2ec4b6', '#e71d36'];
 // Memory a 4 MiB console reliably has for a static image (see docs).
 const FOUR_MB_STATIC_BYTES = 640 * 480;
+const HIGHLIGHT_PULSE_MS = 800;
 
 export function initExtras({ getTheme, queueRender, setError, rebuild }) {
   let selection = null; // [start, end] palette indices, inclusive
   let busy = false;
+  let hovered = null; // { index, since }: the swatch under the mouse
 
   async function task(label, fn) {
     if (busy) return;
@@ -120,7 +122,7 @@ export function initExtras({ getTheme, queueRender, setError, rebuild }) {
     const theme = getTheme(), colors = theme.artwork.staticPalette, grid = $('paletteGrid');
     grid.replaceChildren(...colors.map((c, i) => {
       const cell = document.createElement('button');
-      cell.className = 'swatch'; cell.style.background = hex(c); cell.title = `${i}: ${hex(c)}`;
+      cell.className = 'swatch'; cell.dataset.index = i; cell.style.background = hex(c); cell.title = `${i}: ${hex(c)}`;
       const r = rangeOf(i);
       if (r >= 0) cell.style.outline = `2px solid ${RANGE_COLORS[r % RANGE_COLORS.length]}`;
       if (selection && i >= selection[0] && i <= selection[1]) cell.classList.add('selected');
@@ -147,6 +149,20 @@ export function initExtras({ getTheme, queueRender, setError, rebuild }) {
       row.querySelector('[data-del]').addEventListener('click', () => { theme.staticPalette.ranges.splice(n, 1); syncPalette(); queueRender(); });
       return row;
     }));
+  }
+
+  // Hovering a swatch pulses its pixels in the preview from white to black, so
+  // you can see where that index is used. Time runs on while playback is paused.
+  $('paletteGrid').addEventListener('pointerover', e => {
+    const index = e.target.dataset.index;
+    if (index === undefined || e.pointerType === 'touch') return;
+    if (hovered?.index !== Number(index)) hovered = { index: Number(index), since: performance.now() };
+  });
+  $('paletteGrid').addEventListener('pointerleave', () => { hovered = null; });
+  function paletteHighlight() {
+    if (!hovered) return null;
+    const phase = 2 * Math.PI * (performance.now() - hovered.since) / HIGHLIGHT_PULSE_MS;
+    return { index: hovered.index, level: Math.round(31 * (1 + Math.cos(phase)) / 2) };
   }
 
   // Shows the swatches in cycling ranges as the menu has them at this moment.
@@ -234,5 +250,5 @@ export function initExtras({ getTheme, queueRender, setError, rebuild }) {
     }
     syncStatic(); syncTexture();
   }
-  return { sync, animatePalette };
+  return { sync, animatePalette, paletteHighlight };
 }

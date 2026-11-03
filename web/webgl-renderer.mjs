@@ -375,6 +375,7 @@ export class WebGLThemeRenderer {
     if (ci8) {
       const palette = cycledStaticPalette(art.staticPalette, theme.staticPalette, seconds), data = new Uint8Array(256 * 4);
       palette.forEach((c, i) => { data[i * 4] = c[0] >> 3; data[i * 4 + 1] = c[1] >> 3; data[i * 4 + 2] = c[2] >> 3; });
+      if (this.paletteHighlight) data.fill(this.paletteHighlight.level, this.paletteHighlight.index * 4, this.paletteHighlight.index * 4 + 3);
       this.uploadInt(6, 'staticPal', gl.RGBA8UI, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, 256, 1, data);
     }
     const layout = theme.staticLayout, moving = !!(layout?.panX || layout?.panY);
