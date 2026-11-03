@@ -149,6 +149,14 @@ export function initExtras({ getTheme, queueRender, setError, rebuild }) {
     }));
   }
 
+  // Shows the swatches in cycling ranges as the menu has them at this moment.
+  function animatePalette(seconds) {
+    const theme = getTheme(), colors = theme?.artwork.staticPalette, ranges = theme?.staticPalette?.ranges, cells = $('paletteGrid').children;
+    if (!colors || !ranges?.length || cells.length !== colors.length) return;
+    const current = cycledStaticPalette(colors, theme.staticPalette, seconds);
+    for (const r of ranges) for (let i = r.start; i < r.start + r.length; i++) cells[i].style.background = hex(current[i]);
+  }
+
   $('paletteColor').addEventListener('input', () => {
     const theme = getTheme(); if (!selection) return;
     const rgb = consoleColor(fromHex($('paletteColor').value));
@@ -226,5 +234,5 @@ export function initExtras({ getTheme, queueRender, setError, rebuild }) {
     }
     syncStatic(); syncTexture();
   }
-  return { sync };
+  return { sync, animatePalette };
 }

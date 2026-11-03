@@ -124,7 +124,7 @@ $('downloadThemes').addEventListener('click',async()=>{
   zipping=false;button.disabled=false;syncDownloads();
 });
 
-function animationLoop(now){const dt=Math.min((now-lastTick)/1000,.1);if(theme&&!$('editorView').hidden){if(playing)animTime+=dt*speed;$('scrub').max=Math.max(Number($('scrub').max),Math.ceil(animTime));$('scrub').value=animTime;$('timeReadout').textContent=`${animTime.toFixed(2)} s`;render();}lastTick=now;requestAnimationFrame(animationLoop);}
+function animationLoop(now){const dt=Math.min((now-lastTick)/1000,.1);if(theme&&!$('editorView').hidden){if(playing)animTime+=dt*speed;$('scrub').max=Math.max(Number($('scrub').max),Math.ceil(animTime));$('scrub').value=animTime;$('timeReadout').textContent=`${animTime.toFixed(2)} s`;render();extras.animatePalette(animTime);}lastTick=now;requestAnimationFrame(animationLoop);}
 $('playPause').addEventListener('click',()=>{playing=!playing;$('playPause').textContent=playing?'Pause':'Play';});
 $('scrub').addEventListener('input',()=>{animTime=Number($('scrub').value);});
 $('speed').addEventListener('change',()=>{speed=Number($('speed').value);});
