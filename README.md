@@ -1,7 +1,7 @@
 # N64 Flashcart Menu Themes
 
 Animated background themes for
-[N64FlashcartMenu](https://github.com/Polprzewodnikowy/N64FlashcartMenu), an
+[N64FlashcartMenu](https://github.com/n64brew/N64FlashcartMenu), an
 open-source menu that runs on a Nintendo 64 flashcart. Each theme is a single
 PNG image that is placed on the SD card. This repo holds the themes, a web
 editor for browsing and changing them, and the tools that build them.
